@@ -25,14 +25,9 @@ const LinkedInAuth = ({ onAuthSuccess }) => {
       sessionStorage.setItem('linkedin_oauth_state', state);
       
       // Construct the authorization URL
-      const authUrl = `https://www.linkedin.com/oauth/v2/authorization?` +
-        `response_type=code` +
-        `&client_id=${clientId}` +
-        `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-        `&scope=${encodeURIComponent(scope)}` +
-        `&state=${state}`;
+      const linkedInAuthUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}`;
       
-      console.log('Full authorization URL:', authUrl);
+      console.log('Full authorization URL:', linkedInAuthUrl);
       console.log('Encoded redirect URI:', encodeURIComponent(redirectUri));
       
       // Open LinkedIn auth in a new window
@@ -42,7 +37,7 @@ const LinkedInAuth = ({ onAuthSuccess }) => {
       const top = window.screenY + (window.outerHeight - height) / 2;
       
       const authWindow = window.open(
-        authUrl,
+        linkedInAuthUrl,
         'LinkedIn Authentication',
         `width=${width},height=${height},left=${left},top=${top}`
       );

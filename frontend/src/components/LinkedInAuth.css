@@ -1,0 +1,108 @@
+.linkedin-auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f3f2ef;
+  padding: 20px;
+}
+
+.linkedin-auth-box {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+}
+
+.linkedin-auth-box h2 {
+  color: #0a66c2;
+  margin-bottom: 20px;
+  font-size: 28px;
+}
+
+.auth-description {
+  color: #666;
+  margin-bottom: 32px;
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  color: #333;
+  font-weight: 500;
+}
+
+.form-group input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  border-color: #0a66c2;
+  outline: none;
+}
+
+.linkedin-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background-color: #0a66c2;
+  color: white;
+  border: none;
+  border-radius: 24px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.linkedin-button:hover {
+  background-color: #004182;
+}
+
+.linkedin-icon {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.error-message {
+  color: #d93025;
+  margin: 16px 0;
+  font-size: 14px;
+}
+
+.auth-info {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.auth-info p {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+} 

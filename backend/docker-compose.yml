@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  backend:
+    image: ${REGISTRY_URL}/backend:${COMMIT_SHA}
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - LINKEDIN_CLIENT_ID=${LINKEDIN_CLIENT_ID}
+      - LINKEDIN_CLIENT_SECRET=${LINKEDIN_CLIENT_SECRET}
+      - LINKEDIN_REDIRECT_URI=${LINKEDIN_REDIRECT_URI}
+    restart: unless-stopped 

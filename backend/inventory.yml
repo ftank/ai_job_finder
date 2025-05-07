@@ -1,0 +1,8 @@
+all:
+  children:
+    production:
+      hosts:
+        backend-server:
+          ansible_host: {{ backend_server_ip }}
+          ansible_user: {{ backend_ssh_user }}
+          ansible_ssh_private_key_file: ~/.ssh/id_rsa 

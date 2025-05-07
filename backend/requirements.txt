@@ -1,0 +1,14 @@
+pdfplumber
+openai
+requests
+beautifulsoup4
+pandas==2.1.3
+scikit-learn
+sentence-transformers
+linkedin-api
+python-dotenv==1.0.0
+selenium==4.15.2
+webdriver_manager
+flask==3.0.0
+flask-cors==4.0.0
+requests-oauthlib==1.3.1 

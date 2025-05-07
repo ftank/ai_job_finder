@@ -1,0 +1,91 @@
+.job-search-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f3f2ef;
+  padding: 20px;
+}
+
+.job-search-box {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.job-search-box h2 {
+  color: #0a66c2;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.search-description {
+  color: #666;
+  margin-bottom: 24px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.file-input-container {
+  position: relative;
+  width: 100%;
+}
+
+.file-input {
+  position: absolute;
+  left: -9999px;
+}
+
+.file-input-label {
+  display: block;
+  padding: 12px 24px;
+  background-color: #f3f2ef;
+  border: 2px dashed #0a66c2;
+  border-radius: 4px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #0a66c2;
+  font-weight: 500;
+}
+
+.file-input-label:hover {
+  background-color: #e8f0fe;
+}
+
+.search-button {
+  background-color: #0a66c2;
+  color: white;
+  border: none;
+  border-radius: 24px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+}
+
+.search-button:hover:not(:disabled) {
+  background-color: #004182;
+}
+
+.search-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: #d93025;
+  text-align: center;
+  margin-top: 16px;
+} 

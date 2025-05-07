@@ -1,0 +1,52 @@
+---
+- name: Deploy Job AI Applier Backend
+  hosts: all
+  become: yes
+  vars:
+    app_name: job_ai_applier_backend
+    backend_image: "{{ registry_url }}/backend:{{ commit_sha }}"
+
+  tasks:
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Install Docker Compose
+      get_url:
+        url: https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Create application directory
+      file:
+        path: "/opt/{{ app_name }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy docker-compose file
+      template:
+        src: docker-compose.yml
+        dest: "/opt/{{ app_name }}/docker-compose.yml"
+        mode: '0644'
+
+    - name: Create .env file
+      template:
+        src: .env.j2
+        dest: "/opt/{{ app_name }}/.env"
+        mode: '0600'
+
+    - name: Login to Docker registry
+      docker_login:
+        registry_url: "{{ registry_url }}"
+        username: "{{ registry_username }}"
+        password: "{{ registry_password }}"
+
+    - name: Pull and start containers
+      docker_compose:
+        project_src: "/opt/{{ app_name }}"
+        state: present
+        build: no
+        pull: yes
+        remove_orphans: yes 

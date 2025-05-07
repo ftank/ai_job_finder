@@ -1,8 +1,7 @@
 all:
-  children:
+  hosts:
     production:
-      hosts:
-        backend-server:
-          ansible_host: {{ backend_server_ip }}
-          ansible_user: {{ backend_ssh_user }}
-          ansible_ssh_private_key_file: ~/.ssh/id_rsa 
+      ansible_host: ${DEPLOY_HOST}  # Will be set in GitLab CI variables
+      ansible_user: ${DEPLOY_USER}  # Will be set in GitLab CI variables
+      ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+      ansible_python_interpreter: /usr/bin/python3 

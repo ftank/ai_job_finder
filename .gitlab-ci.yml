@@ -70,5 +70,12 @@ deploy:
     - ansible-playbook -i inventory.yml playbook.yml
   environment:
     name: production
+  variables:
+    DEPLOY_HOST: ${DEPLOY_HOST}
+    DEPLOY_USER: ${DEPLOY_USER}
+    DOMAIN_NAME: ${DOMAIN_NAME}
+    OPENAI_API_KEY: ${OPENAI_API_KEY}
+    LINKEDIN_CLIENT_ID: ${LINKEDIN_CLIENT_ID}
+    LINKEDIN_CLIENT_SECRET: ${LINKEDIN_CLIENT_SECRET}
   only:
     - main 

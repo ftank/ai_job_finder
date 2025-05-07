@@ -1,52 +1,127 @@
 ---
-- name: Deploy Job AI Applier Backend
-  hosts: all
+- name: Deploy Job AI Applier
+  hosts: production
   become: yes
   vars:
-    app_name: job_ai_applier_backend
-    backend_image: "{{ registry_url }}/backend:{{ commit_sha }}"
+    app_dir: /opt/job_ai_applier
+    backend_dir: "{{ app_dir }}/backend"
+    frontend_dir: "{{ app_dir }}/frontend"
+    docker_compose_version: "2.24.6"
 
   tasks:
-    - name: Install Docker
+    - name: Update apt cache
       apt:
-        name: docker.io
-        state: present
         update_cache: yes
+        cache_valid_time: 3600
 
-    - name: Install Docker Compose
-      get_url:
-        url: https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-linux-x86_64
-        dest: /usr/local/bin/docker-compose
-        mode: '0755'
+    - name: Install required packages
+      apt:
+        name:
+          - python3-pip
+          - python3-venv
+          - docker.io
+          - docker-compose
+          - nginx
+        state: present
 
     - name: Create application directory
       file:
-        path: "/opt/{{ app_name }}"
+        path: "{{ app_dir }}"
         state: directory
         mode: '0755'
 
+    - name: Create backend directory
+      file:
+        path: "{{ backend_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Create frontend directory
+      file:
+        path: "{{ frontend_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy backend files
+      copy:
+        src: "{{ item }}"
+        dest: "{{ backend_dir }}/"
+        mode: '0644'
+      with_items:
+        - app.py
+        - api.py
+        - requirements.txt
+        - Dockerfile
+
+    - name: Copy frontend build files
+      copy:
+        src: "{{ item }}"
+        dest: "{{ frontend_dir }}/"
+        mode: '0644'
+      with_items:
+        - build/
+        - package.json
+        - Dockerfile
+
     - name: Copy docker-compose file
-      template:
-        src: docker-compose.yml
-        dest: "/opt/{{ app_name }}/docker-compose.yml"
+      copy:
+        src: ../docker-compose.yml
+        dest: "{{ app_dir }}/"
         mode: '0644'
 
-    - name: Create .env file
-      template:
-        src: .env.j2
-        dest: "/opt/{{ app_name }}/.env"
+    - name: Create .env file for backend
+      copy:
+        content: |
+          FLASK_ENV=production
+          FLASK_APP=app.py
+          OPENAI_API_KEY={{ OPENAI_API_KEY }}
+          LINKEDIN_CLIENT_ID={{ LINKEDIN_CLIENT_ID }}
+          LINKEDIN_CLIENT_SECRET={{ LINKEDIN_CLIENT_SECRET }}
+        dest: "{{ backend_dir }}/.env"
         mode: '0600'
 
-    - name: Login to Docker registry
-      docker_login:
-        registry_url: "{{ registry_url }}"
-        username: "{{ registry_username }}"
-        password: "{{ registry_password }}"
-
-    - name: Pull and start containers
+    - name: Start Docker services
       docker_compose:
-        project_src: "/opt/{{ app_name }}"
+        project_src: "{{ app_dir }}"
         state: present
-        build: no
-        pull: yes
-        remove_orphans: yes 
+        build: yes
+        remove_orphans: yes
+
+    - name: Configure Nginx
+      copy:
+        content: |
+          server {
+              listen 80;
+              server_name {{ DOMAIN_NAME }};
+
+              location / {
+                  proxy_pass http://localhost:3000;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_set_header Host $host;
+                  proxy_cache_bypass $http_upgrade;
+              }
+
+              location /api {
+                  proxy_pass http://localhost:5000;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_set_header Host $host;
+                  proxy_cache_bypass $http_upgrade;
+              }
+          }
+        dest: /etc/nginx/sites-available/job_ai_applier
+        mode: '0644'
+
+    - name: Enable Nginx site
+      file:
+        src: /etc/nginx/sites-available/job_ai_applier
+        dest: /etc/nginx/sites-enabled/job_ai_applier
+        state: link
+
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted 

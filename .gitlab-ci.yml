@@ -9,16 +9,6 @@ variables:
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
 
-# Debug variables
-debug:
-  stage: .pre
-  script:
-    - echo "CI_REGISTRY_IMAGE: $CI_REGISTRY_IMAGE"
-    - echo "CI_COMMIT_SHA: $CI_COMMIT_SHA"
-    - echo "CI_REGISTRY: $CI_REGISTRY"
-  only:
-    - main
-
 # Backend build and test
 build_backend:
   stage: build

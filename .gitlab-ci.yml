@@ -61,24 +61,16 @@ test_frontend:
 deploy:
   stage: deploy
   image: python:3.9
-  before_script:
-    - pip install ansible
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
   script:
+    - pip install -r backend/requirements.txt
     - cd backend
-    - ansible-playbook -i inventory.yml playbook.yml
+    - python app.py
   environment:
     name: production
+    url: https://${CI_PROJECT_PATH_SLUG}.gitlab.io
   variables:
-    DEPLOY_HOST: ${DEPLOY_HOST}
-    DEPLOY_USER: ${DEPLOY_USER}
-    DOMAIN_NAME: ${DOMAIN_NAME}
-    SSH_PRIVATE_KEY: ${SSH_PRIVATE_KEY}
+    FLASK_ENV: production
+    FLASK_APP: app.py
     OPENAI_API_KEY: ${OPENAI_API_KEY}
     LINKEDIN_CLIENT_ID: ${LINKEDIN_CLIENT_ID}
     LINKEDIN_CLIENT_SECRET: ${LINKEDIN_CLIENT_SECRET}

@@ -28,6 +28,6 @@
     }
   ],
   "env": {
-    "REACT_APP_API_URL": "https://your-backend-url.com"
+    "REACT_APP_API_URL": "https://job-ai-applier-backend.onrender.com"
   }
 } 

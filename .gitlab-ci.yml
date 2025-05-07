@@ -60,8 +60,22 @@ test_frontend:
   only:
     - main
 
-# Deployment
-deploy:
+# Deploy frontend to GitLab Pages
+pages:
+  stage: deploy
+  image: node:16
+  script:
+    - cd frontend
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - frontend/build
+  only:
+    - main
+
+# Deploy backend
+deploy_backend:
   stage: deploy
   image: docker:latest
   services:
@@ -70,11 +84,7 @@ deploy:
     - apk add --no-cache docker-compose
     - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin registry.gitlab.com
   script:
-    # Build and push frontend image
-    - docker build -t $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA ./frontend
-    - docker push $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA
-    
-    # Create docker-compose file with correct image tags
+    # Create docker-compose file
     - |
       cat > docker-compose.yml << EOF
       version: '3.8'
@@ -92,17 +102,6 @@ deploy:
           networks:
             - app-network
 
-        frontend:
-          image: $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA
-          ports:
-            - "3000:3000"
-          environment:
-            - REACT_APP_API_URL=http://backend:5000
-          depends_on:
-            - backend
-          networks:
-            - app-network
-
       networks:
         app-network:
           driver: bridge
@@ -112,7 +111,7 @@ deploy:
     - docker-compose up -d
   environment:
     name: production
-    url: http://localhost:3000
+    url: http://localhost:5000
   variables:
     FLASK_ENV: production
     FLASK_APP: app.py

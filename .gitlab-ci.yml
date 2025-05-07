@@ -15,11 +15,11 @@ build_backend:
   image: docker:latest
   services:
     - docker:dind
-  before_script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin registry.gitlab.com
   script:
-    - docker build -t $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA ./backend
-    - docker push $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA
+    - docker build -t backend:latest ./backend
+  artifacts:
+    paths:
+      - backend/
   only:
     - main
 

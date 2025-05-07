@@ -1,8 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import './LinkedInCallback.css';
 
 const LinkedInCallback = () => {
   const navigate = useNavigate();
+  const [status, setStatus] = useState('Processing...');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -15,11 +18,12 @@ const LinkedInCallback = () => {
         const code = urlParams.get('code');
         const state = urlParams.get('state');
         const error = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
         
-        console.log('URL parameters:', { code, state, error });
+        console.log('URL parameters:', { code, state, error, errorDescription });
         
         if (error) {
-          throw new Error(`LinkedIn OAuth error: ${error}`);
+          throw new Error(errorDescription || `LinkedIn OAuth error: ${error}`);
         }
         
         // Verify state to prevent CSRF
@@ -27,12 +31,18 @@ const LinkedInCallback = () => {
         console.log('Stored state:', storedState);
         console.log('Received state:', state);
         
+        if (!storedState) {
+          throw new Error('No state found in session storage');
+        }
+        
         if (state !== storedState) {
-          throw new Error('Invalid state parameter');
+          throw new Error('Invalid state parameter - possible CSRF attack');
         }
 
         if (code) {
+          setStatus('Authorization successful, sending to main window...');
           console.log('Authorization code received, sending to opener window');
+          
           // Send message to opener window
           if (window.opener) {
             window.opener.postMessage({
@@ -40,7 +50,11 @@ const LinkedInCallback = () => {
               code: code
             }, window.location.origin);
             console.log('Message sent to opener window');
-            window.close();
+            
+            // Wait a moment before closing to ensure message is received
+            setTimeout(() => {
+              window.close();
+            }, 1000);
           } else {
             console.log('No opener window found, redirecting to home');
             navigate('/');
@@ -50,15 +64,25 @@ const LinkedInCallback = () => {
         }
       } catch (error) {
         console.error('Error in callback:', error);
+        setError(error.message);
+        setStatus('Authentication failed');
+        
         // Send error to opener window
         if (window.opener) {
           window.opener.postMessage({
             type: 'linkedin-auth-error',
             error: error.message
           }, window.location.origin);
-          window.close();
+          
+          // Wait a moment before closing to ensure message is received
+          setTimeout(() => {
+            window.close();
+          }, 2000);
         } else {
-          navigate('/');
+          // If no opener, redirect to home after a delay
+          setTimeout(() => {
+            navigate('/');
+          }, 3000);
         }
       }
     };
@@ -68,9 +92,24 @@ const LinkedInCallback = () => {
 
   return (
     <div className="callback-container">
-      <h2>Processing LinkedIn Authentication...</h2>
-      <p>Please wait while we complete the authentication process.</p>
-      <p>If this window doesn't close automatically, you can close it manually.</p>
+      <div className="callback-box">
+        <h2>LinkedIn Authentication</h2>
+        {error ? (
+          <>
+            <div className="error-message">
+              <p>{error}</p>
+            </div>
+            <p>You will be redirected to the home page...</p>
+          </>
+        ) : (
+          <>
+            <div className="status-message">
+              <p>{status}</p>
+            </div>
+            <p>This window will close automatically.</p>
+          </>
+        )}
+      </div>
     </div>
   );
 };

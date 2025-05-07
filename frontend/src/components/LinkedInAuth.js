@@ -1,9 +1,68 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './LinkedInAuth.css';
 
 const LinkedInAuth = ({ onAuthSuccess }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Listen for messages from the popup window
+  useEffect(() => {
+    const messageHandler = async (event) => {
+      console.log('Received message:', event.data);
+      
+      if (event.data.type === 'linkedin-auth-success') {
+        const code = event.data.code;
+        console.log('Received authorization code');
+        
+        try {
+          setIsLoading(true);
+          const apiUrl = process.env.REACT_APP_API_URL;
+          console.log('Sending code to backend:', apiUrl);
+          
+          const response = await fetch(`${apiUrl}/api/auth/linkedin/callback`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ code })
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Token exchange failed:', errorData);
+            throw new Error(errorData.error || 'Failed to exchange code for token');
+          }
+          
+          const data = await response.json();
+          console.log('Authentication successful');
+          
+          if (data.access_token) {
+            sessionStorage.setItem('linkedin_access_token', data.access_token);
+            console.log('Token stored in session storage');
+            
+            if (onAuthSuccess) {
+              onAuthSuccess(data);
+            }
+          } else {
+            console.error('No access token in response:', data);
+            setError('Failed to get access token');
+          }
+        } catch (error) {
+          console.error('Error exchanging code for token:', error);
+          setError(error.message || 'Error exchanging code for token. Please try again.');
+        } finally {
+          setIsLoading(false);
+        }
+      } else if (event.data.type === 'linkedin-auth-error') {
+        console.error('LinkedIn auth error:', event.data.error);
+        setError(event.data.error);
+        setIsLoading(false);
+      }
+    };
+
+    window.addEventListener('message', messageHandler);
+    return () => window.removeEventListener('message', messageHandler);
+  }, [onAuthSuccess]);
 
   const handleLinkedInLogin = async () => {
     try {
@@ -24,8 +83,6 @@ const LinkedInAuth = ({ onAuthSuccess }) => {
       
       // Generate random state for security
       const state = Math.random().toString(36).substring(7);
-      
-      // Store state in session storage for verification
       sessionStorage.setItem('linkedin_oauth_state', state);
       
       // Construct the authorization URL
@@ -49,68 +106,16 @@ const LinkedInAuth = ({ onAuthSuccess }) => {
         throw new Error('Popup window was blocked. Please allow popups for this site.');
       }
 
-      // Listen for messages from the popup window
-      const messageHandler = async (event) => {
-        console.log('Received message:', event.data);
-        
-        if (event.data.type === 'linkedin-auth-success') {
-          // Get the authorization code from the popup
-          const code = event.data.code;
-          console.log('Received authorization code');
-          
-          try {
-            // Send the code to your backend for token exchange
-            const apiUrl = process.env.REACT_APP_API_URL;
-            console.log('Sending code to backend:', apiUrl);
-            
-            const response = await fetch(`${apiUrl}/api/auth/linkedin/callback`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ code })
-            });
-            
-            if (!response.ok) {
-              const errorData = await response.json();
-              console.error('Token exchange failed:', errorData);
-              throw new Error(errorData.error || 'Failed to exchange code for token');
-            }
-            
-            const data = await response.json();
-            console.log('Authentication successful');
-            
-            if (data.access_token) {
-              // Store the token in session storage
-              sessionStorage.setItem('linkedin_access_token', data.access_token);
-              console.log('Token stored in session storage');
-              
-              // Call the success callback
-              if (onAuthSuccess) {
-                onAuthSuccess(data);
-              }
-            } else {
-              console.error('No access token in response:', data);
-              setError('Failed to get access token');
-            }
-          } catch (error) {
-            console.error('Error exchanging code for token:', error);
-            setError(error.message || 'Error exchanging code for token. Please try again.');
-          } finally {
+      // Check if the popup was closed
+      const checkPopup = setInterval(() => {
+        if (authWindow.closed) {
+          clearInterval(checkPopup);
+          if (!sessionStorage.getItem('linkedin_access_token')) {
+            setError('Authentication window was closed. Please try again.');
             setIsLoading(false);
           }
-          
-          // Clean up the event listener
-          window.removeEventListener('message', messageHandler);
-        } else if (event.data.type === 'linkedin-auth-error') {
-          console.error('LinkedIn auth error:', event.data.error);
-          setError(event.data.error);
-          setIsLoading(false);
-          window.removeEventListener('message', messageHandler);
         }
-      };
-
-      window.addEventListener('message', messageHandler);
+      }, 1000);
       
     } catch (error) {
       console.error('Error in LinkedIn login:', error);
@@ -127,7 +132,17 @@ const LinkedInAuth = ({ onAuthSuccess }) => {
           Connect your LinkedIn account to get started with automated job applications
         </p>
         
-        {error && <div className="error-message">{error}</div>}
+        {error && (
+          <div className="error-message">
+            <p>{error}</p>
+            <button 
+              onClick={() => setError('')}
+              className="clear-error-button"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
         
         <button 
           onClick={handleLinkedInLogin}

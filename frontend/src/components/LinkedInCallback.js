@@ -1,54 +1,60 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const LinkedInCallback = () => {
+  const navigate = useNavigate();
+
   useEffect(() => {
-    const handleCallback = () => {
-      console.log('Callback component mounted');
-      
-      // Get the authorization code and state from URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
-      const state = urlParams.get('state');
-      
-      console.log('URL parameters:', { code, state });
-      
-      // Verify state matches what we stored
-      const storedState = sessionStorage.getItem('linkedin_oauth_state');
-      console.log('Stored state:', storedState);
-      
-      if (state === storedState && code) {
-        console.log('State verified, sending code to opener');
-        // Send the code back to the opener window
-        if (window.opener) {
-          window.opener.postMessage({ 
-            type: 'linkedin-auth-success',
-            code: code
-          }, '*');
-          console.log('Message sent to opener');
-        } else {
-          console.error('No opener window found');
+    const handleCallback = async () => {
+      try {
+        // Get the authorization code from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        
+        // Verify state to prevent CSRF
+        const storedState = sessionStorage.getItem('linkedin_oauth_state');
+        if (state !== storedState) {
+          throw new Error('Invalid state parameter');
         }
-      } else {
-        console.error('State verification failed or no code received');
+
+        if (code) {
+          // Send message to opener window
+          if (window.opener) {
+            window.opener.postMessage({
+              type: 'linkedin-auth-success',
+              code: code
+            }, window.location.origin);
+            window.close();
+          } else {
+            // If no opener, redirect to home
+            navigate('/');
+          }
+        } else {
+          throw new Error('No authorization code received');
+        }
+      } catch (error) {
+        console.error('Error in callback:', error);
+        // Send error to opener window
+        if (window.opener) {
+          window.opener.postMessage({
+            type: 'linkedin-auth-error',
+            error: error.message
+          }, window.location.origin);
+          window.close();
+        } else {
+          navigate('/');
+        }
       }
-      
-      // Close this window
-      console.log('Closing popup window');
-      window.close();
     };
 
     handleCallback();
-  }, []);
+  }, [navigate]);
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      height: '100vh',
-      fontFamily: 'Arial, sans-serif'
-    }}>
-      <p>Completing authentication...</p>
+    <div className="callback-container">
+      <h2>Processing LinkedIn Authentication...</h2>
+      <p>Please wait while we complete the authentication process.</p>
     </div>
   );
 };

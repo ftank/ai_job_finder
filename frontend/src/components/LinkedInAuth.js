@@ -7,9 +7,8 @@ const LinkedInAuth = ({ onAuthSuccess }) => {
   const handleLinkedInLogin = async () => {
     try {
       // LinkedIn OAuth configuration
-      const clientId = '77ouq1crxpcz32'; // Your LinkedIn client ID
-      // Replace this with your actual ngrok URL
-      const redirectUri = 'https://ai-job-finder.onrender.com/';
+      const clientId = process.env.REACT_APP_LINKEDIN_CLIENT_ID || '77ouq1crxpcz32';
+      const redirectUri = process.env.REACT_APP_LINKEDIN_REDIRECT_URI || 'https://ai-job-finder.onrender.com/callback';
       const scope = 'r_liteprofile r_emailaddress w_member_social';
       
       console.log('OAuth Configuration:', {
@@ -25,10 +24,9 @@ const LinkedInAuth = ({ onAuthSuccess }) => {
       sessionStorage.setItem('linkedin_oauth_state', state);
       
       // Construct the authorization URL
-      const linkedInAuthUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}`;
+      const linkedInAuthUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${state}`;
       
       console.log('Full authorization URL:', linkedInAuthUrl);
-      console.log('Encoded redirect URI:', encodeURIComponent(redirectUri));
       
       // Open LinkedIn auth in a new window
       const width = 600;
@@ -56,42 +54,35 @@ const LinkedInAuth = ({ onAuthSuccess }) => {
           console.log('Received authorization code');
           
           try {
-            // Exchange the code for an access token
-            console.log('Exchanging code for token...');
-            const tokenResponse = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
+            // Send the code to your backend for token exchange
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/linkedin/callback`, {
               method: 'POST',
               headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'application/json',
               },
-              body: new URLSearchParams({
-                grant_type: 'authorization_code',
-                code: code,
-                redirect_uri: redirectUri,
-                client_id: clientId,
-                client_secret: 'YOUR_CLIENT_SECRET' // This should be handled securely
-              })
+              body: JSON.stringify({ code })
             });
             
-            if (!tokenResponse.ok) {
-              const errorData = await tokenResponse.json();
+            if (!response.ok) {
+              const errorData = await response.json();
               console.error('Token exchange failed:', errorData);
               throw new Error('Failed to exchange code for token');
             }
             
-            const tokenData = await tokenResponse.json();
-            console.log('Token received successfully');
+            const data = await response.json();
+            console.log('Authentication successful');
             
-            if (tokenData.access_token) {
+            if (data.access_token) {
               // Store the token in session storage
-              sessionStorage.setItem('linkedin_access_token', tokenData.access_token);
+              sessionStorage.setItem('linkedin_access_token', data.access_token);
               console.log('Token stored in session storage');
               
               // Call the success callback
               if (onAuthSuccess) {
-                onAuthSuccess();
+                onAuthSuccess(data);
               }
             } else {
-              console.error('No access token in response:', tokenData);
+              console.error('No access token in response:', data);
               setError('Failed to get access token');
             }
           } catch (error) {

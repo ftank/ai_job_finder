@@ -1,78 +1,97 @@
 # Job AI Applier
 
-An AI-powered job application assistant that helps automate the job search and application process.
+An AI-powered job application assistant that helps you find and apply for jobs using LinkedIn integration and OpenAI.
 
-## Project Structure
+## Features
 
-```
-.
-├── backend/           # Python Flask backend
-│   ├── app.py        # Main Flask application
-│   ├── api.py        # API endpoints
-│   └── requirements.txt
-├── frontend/         # React frontend
-│   ├── src/         # Source code
-│   └── package.json
-└── docker-compose.yml
-```
+- Resume parsing and analysis
+- AI-powered job matching
+- LinkedIn job search integration
+- Automated job application process
+- Modern React frontend
+
+## Tech Stack
+
+- Backend: Python/Flask
+- Frontend: React
+- AI: OpenAI API
+- Authentication: LinkedIn OAuth
+- Deployment: Render
 
 ## Setup
 
-### Prerequisites
-- Python 3.9+
-- Node.js 16+
-- Docker and Docker Compose
+### Backend
 
-### Backend Setup
+1. Navigate to the backend directory:
 ```bash
 cd backend
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+```
+
+2. Create a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. Install dependencies:
+```bash
 pip install -r requirements.txt
 ```
 
-### Frontend Setup
+4. Set up environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your credentials
+```
+
+### Frontend
+
+1. Navigate to the frontend directory:
 ```bash
 cd frontend
+```
+
+2. Install dependencies:
+```bash
 npm install
 ```
 
-## Running the Application
-
-### Using Docker Compose
+3. Set up environment variables:
 ```bash
-docker-compose up
+cp .env.example .env
+# Edit .env with your API URLs
 ```
 
-### Running Locally
-1. Start the backend:
+## Development
+
+### Backend
 ```bash
 cd backend
-python app.py
+flask run
 ```
 
-2. Start the frontend:
+### Frontend
 ```bash
 cd frontend
 npm start
 ```
 
-The application will be available at:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000
-
-## Development
-
-### Running Tests
-```bash
-# Backend tests
-cd backend
-python -m pytest
-
-# Frontend tests
-cd frontend
-npm test
-```
-
 ## Deployment
-The application is configured to deploy using GitLab CI/CD. See `.gitlab-ci.yml` for details. 
+
+The application is configured for deployment on Render. The `render.yaml` file contains the configuration for both frontend and backend services.
+
+## Environment Variables
+
+### Backend
+- `FLASK_ENV`: Environment (development/production)
+- `FLASK_APP`: Main application file
+- `OPENAI_API_KEY`: OpenAI API key
+- `LINKEDIN_CLIENT_ID`: LinkedIn OAuth client ID
+- `LINKEDIN_CLIENT_SECRET`: LinkedIn OAuth client secret
+
+### Frontend
+- `REACT_APP_API_URL`: Backend API URL
+
+## License
+
+MIT 

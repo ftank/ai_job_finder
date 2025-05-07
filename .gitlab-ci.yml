@@ -1,4 +1,4 @@
-image: python:3.9
+image: docker:latest
 
 stages:
   - build
@@ -9,22 +9,30 @@ variables:
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
 
+# Debug variables
+debug:
+  stage: .pre
+  script:
+    - echo "CI_REGISTRY_IMAGE: $CI_REGISTRY_IMAGE"
+    - echo "CI_COMMIT_SHA: $CI_COMMIT_SHA"
+    - echo "CI_REGISTRY: $CI_REGISTRY"
+  only:
+    - main
+
 # Backend build and test
 build_backend:
   stage: build
-  image: docker:latest
   services:
     - docker:dind
   script:
-    - docker build -t backend:latest ./backend
-  artifacts:
-    paths:
-      - backend/
+    - docker build -t $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA ./backend
+    - docker push $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA
   only:
     - main
 
 test_backend:
   stage: test
+  image: python:3.9
   script:
     - pip install -r backend/requirements.txt
     - python -m pytest backend/tests/
@@ -60,14 +68,56 @@ test_frontend:
 # Deployment
 deploy:
   stage: deploy
-  image: python:3.9
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - apk add --no-cache docker-compose
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
   script:
-    - pip install -r backend/requirements.txt
-    - cd backend
-    - python app.py
+    # Build and push frontend image
+    - docker build -t $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA ./frontend
+    - docker push $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA
+    
+    # Create docker-compose file with correct image tags
+    - |
+      cat > docker-compose.yml << EOF
+      version: '3.8'
+      services:
+        backend:
+          image: $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA
+          ports:
+            - "5000:5000"
+          environment:
+            - FLASK_ENV=production
+            - FLASK_APP=app.py
+            - OPENAI_API_KEY=${OPENAI_API_KEY}
+            - LINKEDIN_CLIENT_ID=${LINKEDIN_CLIENT_ID}
+            - LINKEDIN_CLIENT_SECRET=${LINKEDIN_CLIENT_SECRET}
+          networks:
+            - app-network
+
+        frontend:
+          image: $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA
+          ports:
+            - "3000:3000"
+          environment:
+            - REACT_APP_API_URL=http://backend:5000
+          depends_on:
+            - backend
+          networks:
+            - app-network
+
+      networks:
+        app-network:
+          driver: bridge
+      EOF
+    
+    # Deploy using docker-compose
+    - docker-compose up -d
   environment:
     name: production
-    url: https://${CI_PROJECT_PATH_SLUG}.gitlab.io
+    url: http://localhost:3000
   variables:
     FLASK_ENV: production
     FLASK_APP: app.py

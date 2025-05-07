@@ -8,6 +8,9 @@ services:
     environment:
       - FLASK_ENV=production
       - FLASK_APP=app.py
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - LINKEDIN_CLIENT_ID=${LINKEDIN_CLIENT_ID}
+      - LINKEDIN_CLIENT_SECRET=${LINKEDIN_CLIENT_SECRET}
     volumes:
       - ./backend:/app
     networks:
@@ -17,6 +20,8 @@ services:
     build: ./frontend
     ports:
       - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
     volumes:
       - ./frontend:/app
       - /app/node_modules

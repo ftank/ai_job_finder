@@ -9,4 +9,5 @@ pytest==6.2.5
 gunicorn==20.1.0
 python-multipart==0.0.5
 werkzeug==2.0.1
-boto3==1.26.0 
+boto3==1.26.0
+linkedin-api==2.0.0a5 

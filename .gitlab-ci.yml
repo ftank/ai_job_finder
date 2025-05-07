@@ -9,6 +9,7 @@ variables:
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
 
+
 # Backend build and test
 build_backend:
   stage: build
@@ -117,4 +118,4 @@ deploy:
     LINKEDIN_CLIENT_ID: ${LINKEDIN_CLIENT_ID}
     LINKEDIN_CLIENT_SECRET: ${LINKEDIN_CLIENT_SECRET}
   only:
-    - main 
+    - main

@@ -6,12 +6,23 @@ from linkedin_integration import LinkedInJobSearch
 import os
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
+import requests
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "http://localhost:3000",
+            "https://job-ai-applier-frontend.onrender.com",
+            "https://*.onrender.com"
+        ],
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'your-secret-key')
 
 UPLOAD_FOLDER = 'uploads'

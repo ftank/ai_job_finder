@@ -9,7 +9,7 @@ const LinkedInAuth = ({ onAuthSuccess }) => {
       // LinkedIn OAuth configuration
       const clientId = '77ouq1crxpcz32'; // Your LinkedIn client ID
       // Replace this with your actual ngrok URL
-      const redirectUri = 'https://1234-56-78-910.ngrok.io/callback';
+      const redirectUri = 'https://ai-job-finder.onrender.com/';
       const scope = 'r_liteprofile r_emailaddress w_member_social';
       
       console.log('OAuth Configuration:', {

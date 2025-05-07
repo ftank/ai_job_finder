@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: job-ai-applier-frontend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: serve -s build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://job-ai-applier-backend.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html 

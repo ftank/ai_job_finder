@@ -3,9 +3,13 @@ import './LinkedInAuth.css';
 
 const LinkedInAuth = ({ onAuthSuccess }) => {
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLinkedInLogin = async () => {
     try {
+      setIsLoading(true);
+      setError('');
+
       // LinkedIn OAuth configuration
       const clientId = process.env.REACT_APP_LINKEDIN_CLIENT_ID || '77ouq1crxpcz32';
       const redirectUri = process.env.REACT_APP_LINKEDIN_REDIRECT_URI || 'https://ai-job-finder.onrender.com/callback';
@@ -14,7 +18,8 @@ const LinkedInAuth = ({ onAuthSuccess }) => {
       console.log('OAuth Configuration:', {
         clientId,
         redirectUri,
-        scope
+        scope,
+        apiUrl: process.env.REACT_APP_API_URL
       });
       
       // Generate random state for security
@@ -55,7 +60,10 @@ const LinkedInAuth = ({ onAuthSuccess }) => {
           
           try {
             // Send the code to your backend for token exchange
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/linkedin/callback`, {
+            const apiUrl = process.env.REACT_APP_API_URL;
+            console.log('Sending code to backend:', apiUrl);
+            
+            const response = await fetch(`${apiUrl}/api/auth/linkedin/callback`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -66,7 +74,7 @@ const LinkedInAuth = ({ onAuthSuccess }) => {
             if (!response.ok) {
               const errorData = await response.json();
               console.error('Token exchange failed:', errorData);
-              throw new Error('Failed to exchange code for token');
+              throw new Error(errorData.error || 'Failed to exchange code for token');
             }
             
             const data = await response.json();
@@ -87,10 +95,17 @@ const LinkedInAuth = ({ onAuthSuccess }) => {
             }
           } catch (error) {
             console.error('Error exchanging code for token:', error);
-            setError('Error exchanging code for token. Please try again.');
+            setError(error.message || 'Error exchanging code for token. Please try again.');
+          } finally {
+            setIsLoading(false);
           }
           
           // Clean up the event listener
+          window.removeEventListener('message', messageHandler);
+        } else if (event.data.type === 'linkedin-auth-error') {
+          console.error('LinkedIn auth error:', event.data.error);
+          setError(event.data.error);
+          setIsLoading(false);
           window.removeEventListener('message', messageHandler);
         }
       };
@@ -100,6 +115,7 @@ const LinkedInAuth = ({ onAuthSuccess }) => {
     } catch (error) {
       console.error('Error in LinkedIn login:', error);
       setError(error.message || 'Error starting LinkedIn authentication. Please try again.');
+      setIsLoading(false);
     }
   };
 
@@ -116,11 +132,9 @@ const LinkedInAuth = ({ onAuthSuccess }) => {
         <button 
           onClick={handleLinkedInLogin}
           className="linkedin-button"
+          disabled={isLoading}
         >
-          <svg className="linkedin-icon" viewBox="0 0 24 24">
-            <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-          </svg>
-          Connect with LinkedIn
+          {isLoading ? 'Connecting...' : 'Connect with LinkedIn'}
         </button>
         
         <div className="auth-info">

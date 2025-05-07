@@ -17,10 +17,13 @@ CORS(app, resources={
         "origins": [
             "http://localhost:3000",
             "https://job-ai-applier-frontend.onrender.com",
-            "https://*.onrender.com"
+            "https://*.onrender.com",
+            "https://ai-job-finder.onrender.com"
         ],
         "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True,
+        "max_age": 600
     }
 })
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'your-secret-key')
@@ -95,6 +98,24 @@ def get_profile():
     if profile:
         return jsonify(profile)
     return jsonify({'error': 'Failed to get profile'}), 400
+
+# Add error handlers
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({'error': 'Not found'}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return jsonify({'error': 'Internal server error'}), 500
+
+@app.errorhandler(502)
+def bad_gateway(error):
+    return jsonify({'error': 'Bad gateway'}), 502
+
+# Add health check endpoint
+@app.route('/health')
+def health_check():
+    return jsonify({'status': 'healthy'}), 200
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 8000))

@@ -1,4 +1,49 @@
-log.csv
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
 .env
-*.pyc 
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Local development
+*.db
+*.sqlite3
+*.sqlite
+
+# PDF files (since this is a resume analyzer)
+*.pdf
+
+# OS specific
+.DS_Store
+Thumbs.db 

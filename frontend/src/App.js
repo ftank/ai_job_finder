@@ -1,20 +1,17 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import JobSearchApp from './components/JobSearchApp';
-import LinkedInCallback from './components/LinkedInCallback';
+import ResumeAnalyzer from './components/ResumeAnalyzer';
 import './App.css';
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          <Route path="/" element={<JobSearchApp />} />
-          <Route path="/callback" element={<LinkedInCallback />} />
-          <Route path="/test" element={<div>Test Route Working</div>} />
-        </Routes>
+    <div className="App">
+      <header className="App-header">
+        <h1>Resume Analyzer</h1>
+      </header>
+      <div className="container">
+        <ResumeAnalyzer />
       </div>
-    </Router>
+    </div>
   );
 }
 

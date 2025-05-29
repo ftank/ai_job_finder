@@ -1,0 +1,104 @@
+.resume-analyzer {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: Arial, sans-serif;
+}
+
+.resume-analyzer h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 2rem;
+}
+
+.upload-form {
+    background-color: #f5f5f5;
+    padding: 2rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.file-input-container {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.file-input {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.analyze-button {
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.analyze-button:hover {
+    background-color: #0056b3;
+}
+
+.analyze-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.error-message {
+    color: #dc3545;
+    padding: 1rem;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.analysis-results {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.analysis-results h2 {
+    color: #333;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.result-section {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.result-section h3 {
+    color: #007bff;
+    margin-bottom: 1rem;
+}
+
+.result-section ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.result-section li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.result-section li:last-child {
+    border-bottom: none;
+}
+
+.result-section p {
+    line-height: 1.6;
+    color: #555;
+} 

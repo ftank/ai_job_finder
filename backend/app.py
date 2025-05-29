@@ -1,57 +1,54 @@
-from flask import Flask, request, jsonify, session
-from flask_cors import CORS
-from linkedin_oauth import LinkedInOAuth
+from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+from resume_analyzer import ResumeAnalyzer
 import os
-from dotenv import load_dotenv
+import shutil
+from typing import Dict, Any
 
-# Load environment variables
-load_dotenv()
+app = FastAPI()
 
-app = Flask(__name__)
-CORS(app, resources={
-    r"/*": {
-        "origins": [
-            "http://localhost:3000",
-            "https://job-ai-applier-frontend.onrender.com",
-            "https://*.onrender.com"
-        ],
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
-    }
-})
-app.secret_key = os.getenv('FLASK_SECRET_KEY', 'your-secret-key')
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 
-oauth = LinkedInOAuth()
+# Initialize ResumeAnalyzer
+analyzer = ResumeAnalyzer()
 
-@app.route('/api/auth/linkedin/url', methods=['GET'])
-def get_linkedin_url():
-    """Get LinkedIn OAuth URL"""
-    auth_url = oauth.get_auth_url()
-    return jsonify({'url': auth_url})
+@app.post("/analyze")
+async def analyze_resume(file: UploadFile = File(...)) -> Dict[str, Any]:
+    """
+    Analyze a resume PDF file
+    
+    Args:
+        file (UploadFile): The uploaded PDF file
+        
+    Returns:
+        dict: Analysis results
+    """
+    try:
+        # Create uploads directory if it doesn't exist
+        os.makedirs("uploads", exist_ok=True)
+        
+        # Save the uploaded file
+        file_path = f"uploads/{file.filename}"
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Process the resume
+        results = analyzer.process_resume(file_path)
+        
+        # Clean up the uploaded file
+        os.remove(file_path)
+        
+        return results
+    except Exception as e:
+        return {"error": str(e)}
 
-@app.route('/api/auth/linkedin/callback', methods=['POST'])
-def linkedin_callback():
-    """Handle LinkedIn OAuth callback"""
-    code = request.json.get('code')
-    if not code:
-        return jsonify({'error': 'No code provided'}), 400
-
-    token_data = oauth.get_access_token(code)
-    if not token_data:
-        return jsonify({'error': 'Failed to get access token'}), 400
-
-    access_token = token_data.get('access_token')
-    profile = oauth.get_profile(access_token)
-    email = oauth.get_email(access_token)
-
-    if not profile or not email:
-        return jsonify({'error': 'Failed to get profile information'}), 400
-
-    return jsonify({
-        'access_token': access_token,
-        'profile': profile,
-        'email': email
-    })
-
-if __name__ == '__main__':
-    app.run(debug=True) 
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000) 
